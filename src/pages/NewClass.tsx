@@ -21,6 +21,7 @@ import type { Student } from "./Students";
 interface Class {
   id: string;
   studentId: string;
+  studentName: string;
   lessonId: string;
   comments: string;
   date: string;
@@ -70,6 +71,7 @@ function NewClass() {
       id: nanoid(7),
       lessonId: selectedLesson.id,
       studentId: selectedStudent.id,
+      studentName: selectedStudent.name,
       comments: "",
     });
 

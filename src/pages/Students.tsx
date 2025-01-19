@@ -84,13 +84,16 @@ function Students() {
       </div>
 
       <div className="space-y-4">
-        {students.map(({ id, name }, index) => (
+        {students.map(({ id, name, phone }, index) => (
           <>
             <div
               key={index}
               className="flex items-center justify-between w-full"
             >
-              <Label className="text-lg">{name}</Label>
+              <div className="flex flex-col space-y-1">
+                <Label className="text-lg">{name}</Label>
+                <small className="text-sm text-muted-foreground">{phone}</small>
+              </div>
               <Button
                 variant="link"
                 onClick={() => handleRemoveStudent(id)}
