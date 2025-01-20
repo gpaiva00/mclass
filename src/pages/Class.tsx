@@ -23,13 +23,10 @@ function Class() {
 
   const [currentClassData] = useLocalStorage<Class | null>(
     "currentClass",
-   null ,
+    null,
   );
 
-  const [, setClasses] = useLocalStorage<Class[]>(
-    "classes",
-   [] ,
-  );
+  const [, setClasses] = useLocalStorage<Class[]>("classes", []);
 
   const [students] = useLocalStorage<Student[]>("students", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
@@ -38,7 +35,9 @@ function Class() {
     (_student) => _student.id === currentClassData?.studentId,
   );
 
-  const lesson = lessons.find((_lesson) => _lesson.id === currentClassData?.lessonId);
+  const lesson = lessons.find(
+    (_lesson) => _lesson.id === currentClassData?.lessonId,
+  );
 
   const noCheckedItems = useMemo(
     () => Object.values(checkedItems).every((value) => !value),
@@ -48,15 +47,15 @@ function Class() {
   const navigate = useNavigate();
 
   function handleCheckboxChange(id: string, text: string) {
-    setCheckedItems(prev => {
-        const isItemChecked = prev.some(item => item.id === id);
+    setCheckedItems((prev) => {
+      const isItemChecked = prev.some((item) => item.id === id);
 
-        if (isItemChecked) {
-          return prev.filter(item => item.id !== id);
-        } else {
-          return [...prev, { id, text }];
-        }
-      });
+      if (isItemChecked) {
+        return prev.filter((item) => item.id !== id);
+      } else {
+        return [...prev, { id, text }];
+      }
+    });
   }
 
   function handleFinish() {
@@ -66,10 +65,7 @@ function Class() {
       completedItems: checkedItems,
     };
 
-    setClasses(_classes => [
-      ..._classes,
-      data
-    ])
+    setClasses((_classes) => [..._classes, data]);
 
     navigate("/");
   }
@@ -98,8 +94,13 @@ function Class() {
               <input
                 type="checkbox"
                 id={lessonItem.id}
-                checked={checkedItems.some(item => item.id === lessonItem.id)}
-                onChange={() => handleCheckboxChange(lessonItem.id, lessonItem.description)}
+                checked={checkedItems.some((item) => item.id === lessonItem.id)}
+                onChange={() =>
+                  handleCheckboxChange(
+                    lessonItem.id,
+                    lessonItem.description || "",
+                  )
+                }
                 className="mt-3"
               />
               <label htmlFor={lessonItem.id}>{lessonItem.description}</label>
