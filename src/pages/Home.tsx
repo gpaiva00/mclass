@@ -32,7 +32,7 @@ function Home() {
       </div>
 
       <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
-        <div className="flex sm:flex-row md:flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
+        <div className="flex flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
           <Label className="font-bold text-lg">Alunos</Label>
           <Button
             variant="outline"
@@ -42,7 +42,7 @@ function Home() {
             Gerenciar
           </Button>
         </div>
-        <div className="flex sm:flex-row md:flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
+        <div className="flex flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
           <Label className="font-bold text-lg">Plano de Aulas</Label>
           <Button
             variant="outline"
