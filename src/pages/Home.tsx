@@ -32,7 +32,7 @@ function Home() {
       </div>
 
       <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
-        <div className="flex md:flex-row flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
+        <div className="flex sm:flex-row md:flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
           <Label className="font-bold text-lg">Alunos</Label>
           <Button
             variant="outline"
@@ -42,7 +42,7 @@ function Home() {
             Gerenciar
           </Button>
         </div>
-        <div className="flex md:flex-row flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
+        <div className="flex sm:flex-row md:flex-col items-center justify-between bg-muted px-4 py-6 space-y-6 rounded-lg">
           <Label className="font-bold text-lg">Plano de Aulas</Label>
           <Button
             variant="outline"
@@ -52,50 +52,51 @@ function Home() {
             Gerenciar
           </Button>
         </div>
-        {!!classes.length && (
-          <div className="space-y-4 mt-6">
-            <Label className="text-2xl">Aulas Feitas</Label>
-
-            <Accordion type="single" collapsible>
-              {classes.map(
-                ({ id, date, completedItems, studentName, comments }) => (
-                  <AccordionItem key={id} value={`item-${id}`}>
-                    <AccordionTrigger>
-                      {date} - {studentName}
-                    </AccordionTrigger>
-                    <AccordionContent className="space-y-4">
-                      {completedItems?.map((completedItem, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 space-y-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={true}
-                            className="mt-3"
-                          />
-                          <label>{completedItem.text}</label>
-                        </div>
-                      ))}
-
-                      <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                        {comments}
-                      </div>
-                      <Button
-                        variant="link"
-                        className="w-full text-red-500"
-                        onClick={() => handleRemoveClass(id)}
-                      >
-                        Apagar Aula
-                      </Button>
-                    </AccordionContent>
-                  </AccordionItem>
-                ),
-              )}
-            </Accordion>
-          </div>
-        )}
       </div>
+
+      {!!classes.length && (
+        <div className="space-y-4 mt-6">
+          <Label className="text-2xl">Aulas Feitas</Label>
+
+          <Accordion type="single" collapsible>
+            {classes.map(
+              ({ id, date, completedItems, studentName, comments }) => (
+                <AccordionItem key={id} value={`item-${id}`}>
+                  <AccordionTrigger>
+                    {date} - {studentName}
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    {completedItems?.map((completedItem, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 space-y-2"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          className="mt-3"
+                        />
+                        <label>{completedItem.text}</label>
+                      </div>
+                    ))}
+
+                    <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                      {comments}
+                    </div>
+                    <Button
+                      variant="link"
+                      className="w-full text-red-500"
+                      onClick={() => handleRemoveClass(id)}
+                    >
+                      Apagar Aula
+                    </Button>
+                  </AccordionContent>
+                </AccordionItem>
+              ),
+            )}
+          </Accordion>
+        </div>
+      )}
     </div>
   );
 }
