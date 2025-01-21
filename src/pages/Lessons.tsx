@@ -72,7 +72,7 @@ function AddLessonItem({ onAdd }: AddLessonItemProps) {
           placeholder="Digite o item da aula"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="flex-grow "
+          className="flex-grow"
         />
         <Button onClick={handleAdd} variant="secondary">
           Adicionar
@@ -85,6 +85,7 @@ function AddLessonItem({ onAdd }: AddLessonItemProps) {
 function Lessons() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [items, setItems] = useState<LessonItem[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   const form = useForm<Lesson>({
     resolver: zodResolver(lessonsSchema),
@@ -98,6 +99,15 @@ function Lessons() {
   const [lessons, setLessons] = useLocalStorage<Lesson[]>("lessons", []);
 
   function toggleModal() {
+    if (!isModalOpen) {
+      setSelectedLesson(null);
+      setItems([]);
+      form.reset({
+        id: "",
+        title: "",
+        items: [],
+      });
+    }
     setIsModalOpen((prev) => !prev);
   }
 
@@ -111,6 +121,15 @@ function Lessons() {
 
   function handleRemoveLesson(id: string) {
     setLessons((_lessons) => _lessons.filter((item) => item.id !== id));
+  }
+
+  function handleEditLesson(lesson: Lesson) {
+    setSelectedLesson(lesson);
+    setItems(lesson.items);
+    form.reset({
+      ...lesson,
+    });
+    setIsModalOpen(true);
   }
 
   function handleSubmit() {
@@ -128,13 +147,23 @@ function Lessons() {
 
     data.items = items;
 
-    setLessons((_lessons) => [
-      ..._lessons,
-      {
-        ...data,
-        id: nanoid(7),
-      },
-    ]);
+    if (selectedLesson) {
+      // Edit existing lesson
+      setLessons((_lessons) =>
+        _lessons.map((lesson) =>
+          lesson.id === selectedLesson.id ? { ...data, id: lesson.id } : lesson,
+        ),
+      );
+    } else {
+      // Add new lesson
+      setLessons((_lessons) => [
+        ..._lessons,
+        {
+          ...data,
+          id: nanoid(7),
+        },
+      ]);
+    }
 
     setItems([]);
     form.reset();
@@ -145,9 +174,7 @@ function Lessons() {
     <div className="px-6 md:px-24 py-12 space-y-8">
       <div className="w-full items-center flex justify-between">
         <Label className="text-3xl">Plano de Aulas</Label>
-        <Button onClick={toggleModal} size="sm">
-          Novo Plano
-        </Button>
+        <Button onClick={toggleModal}>Novo Plano</Button>
       </div>
 
       {lessons.length === 0 && <p>Nenhum plano de aulas cadastrado.</p>}
@@ -156,7 +183,11 @@ function Lessons() {
         <Accordion type="single" collapsible>
           {lessons.map(({ id, title, items }, index) => (
             <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger>{title}</AccordionTrigger>
+              <AccordionTrigger className="group">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <span>{title}</span>
+                </div>
+              </AccordionTrigger>
               <AccordionContent className="space-y-4">
                 <ul className="space-y-2 list-disc list-inside">
                   {items.map((item, _index) => (
@@ -170,10 +201,14 @@ function Lessons() {
                 </ul>
                 <Button
                   variant="link"
-                  className="w-full text-red-500"
-                  onClick={() => handleRemoveLesson(id)}
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditLesson({ id, title, items });
+                  }}
+                  className="w-full"
                 >
-                  Remover Plano de Aula
+                  Editar Plano de Aula
                 </Button>
               </AccordionContent>
             </AccordionItem>
@@ -184,7 +219,9 @@ function Lessons() {
       <Dialog modal open={isModalOpen} onOpenChange={toggleModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Novo Plano de Aulas</DialogTitle>
+            <DialogTitle>
+              {selectedLesson ? "Editar Plano de Aulas" : "Novo Plano de Aulas"}
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <FormField
@@ -227,8 +264,17 @@ function Lessons() {
             </div>
 
             <Button className="w-full" onClick={handleSubmit}>
-              Salvar
+              {selectedLesson ? "Atualizar" : "Salvar"}
             </Button>
+            {selectedLesson && (
+              <Button
+                variant="link"
+                className="w-full text-red-500"
+                onClick={() => handleRemoveLesson(selectedLesson.id)}
+              >
+                Remover Plano de Aula
+              </Button>
+            )}
           </Form>
         </DialogContent>
       </Dialog>

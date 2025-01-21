@@ -28,28 +28,47 @@ import { useLocalStorage } from "@/utils/storage";
 
 const formSchema = z.object({
   id: z.string(),
+  studentNumber: z.string().length(5),
   name: z.string().min(2).max(50),
   phone: z.string().min(8).max(15),
+  cpf: z.string().min(11).max(14).optional(),
 });
 
 type Student = z.infer<typeof formSchema>;
 
+function generateStudentNumber() {
+  return Math.floor(10000 + Math.random() * 90000).toString();
+}
+
 function Students() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const form = useForm<Student>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: "",
+      studentNumber: generateStudentNumber(),
       name: "",
       phone: "",
+      cpf: "",
     },
   });
 
   const [students, setStudents] = useLocalStorage<Student[]>("students", []);
 
   function toggleModal() {
+    if (!isModalOpen) {
+      setSelectedStudent(null);
+      form.reset({
+        id: "",
+        studentNumber: generateStudentNumber(),
+        name: "",
+        phone: "",
+        cpf: "",
+      });
+    }
     setIsModalOpen((prev) => !prev);
   }
 
@@ -57,14 +76,30 @@ function Students() {
     setIsRemoveModalOpen((prev) => !prev);
   }
 
+  function handleEditStudent(student: Student) {
+    setSelectedStudent(student);
+    form.reset(student);
+    setIsModalOpen(true);
+  }
+
   function handleSubmit(student: Student) {
-    setStudents((_students) => [
-      ..._students,
-      {
-        ...student,
-        id: nanoid(7),
-      },
-    ]);
+    if (selectedStudent) {
+      // Edit existing student
+      setStudents((_students) =>
+        _students.map((s) =>
+          s.id === selectedStudent.id ? { ...student, id: s.id } : s,
+        ),
+      );
+    } else {
+      // Add new student
+      setStudents((_students) => [
+        ..._students,
+        {
+          ...student,
+          id: nanoid(7),
+        },
+      ]);
+    }
 
     form.reset();
     toggleModal();
@@ -78,32 +113,40 @@ function Students() {
     <div className="px-6 md:px-24 py-12 space-y-8">
       <div className="w-full items-center flex justify-between">
         <Label className="text-4xl">Alunos</Label>
-        <Button onClick={toggleModal} size="sm">
-          Novo Aluno
-        </Button>
+        <Button onClick={toggleModal}>Novo Aluno</Button>
       </div>
 
       <div className="space-y-4">
-        {students.map(({ id, name, phone }, index) => (
-          <>
-            <div
-              key={index}
-              className="flex items-center justify-between w-full"
-            >
+        {students.map(({ id, studentNumber, name, phone, cpf }, index) => (
+          <div key={id} className="space-y-4">
+            <div className="flex items-center justify-between w-full">
               <div className="flex flex-col space-y-1">
-                <Label className="text-lg">{name}</Label>
-                <small className="text-sm text-muted-foreground">{phone}</small>
+                <div className="flex items-center gap-2">
+                  <Label className="text-lg">{name}</Label>
+                  <span className="text-sm text-muted-foreground">
+                    #{studentNumber}
+                  </span>
+                </div>
               </div>
-              <Button
-                variant="link"
-                onClick={() => handleRemoveStudent(id)}
-                className="text-red-500"
-              >
-                Remover
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="link"
+                  onClick={() =>
+                    handleEditStudent({
+                      id,
+                      studentNumber,
+                      name,
+                      phone,
+                      cpf,
+                    })
+                  }
+                >
+                  Editar
+                </Button>
+              </div>
             </div>
             <hr />
-          </>
+          </div>
         ))}
 
         {students.length === 0 && <p>Nenhum aluno cadastrado.</p>}
@@ -112,13 +155,29 @@ function Students() {
       <Dialog modal open={isModalOpen} onOpenChange={toggleModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Novo Aluno</DialogTitle>
+            <DialogTitle>
+              {selectedStudent ? "Editar Aluno" : "Novo Aluno"}
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-4"
             >
+              <FormField
+                control={form.control}
+                name="studentNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número do Aluno</FormLabel>
+                    <FormControl>
+                      <Input readOnly {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="name"
@@ -132,7 +191,6 @@ function Students() {
                         {...field}
                       />
                     </FormControl>
-                    {/* <FormDescription>This is your public display name.</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -155,9 +213,32 @@ function Students() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 123.456.789-00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <Button type="submit" className="w-full">
-                Salvar
+                {selectedStudent ? "Atualizar" : "Salvar"}
               </Button>
+              {selectedStudent && (
+                <Button
+                  variant="link"
+                  onClick={() => handleRemoveStudent(selectedStudent.id)}
+                  className="text-red-500 w-full"
+                >
+                  Remover Aluno
+                </Button>
+              )}
             </form>
           </Form>
         </DialogContent>

@@ -26,9 +26,7 @@ function Home() {
     <div className="md:px-24 px-6 py-12 space-y-8">
       <div className="w-full items-center flex justify-between">
         <Label className="text-4xl">Marcos</Label>
-        <Button onClick={() => navigate("/nova-aula")} size="sm">
-          Nova Aula
-        </Button>
+        <Button onClick={() => navigate("/nova-aula")}>Nova Aula</Button>
       </div>
 
       <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
@@ -66,23 +64,27 @@ function Home() {
                     {date} - {studentName}
                   </AccordionTrigger>
                   <AccordionContent className="space-y-4">
-                    {completedItems?.map((completedItem, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 space-y-2"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={true}
-                          className="mt-3"
-                        />
-                        <label>{completedItem.text}</label>
-                      </div>
-                    ))}
-
-                    <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                      {comments}
+                    <div>
+                      {completedItems?.map((completedItem, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 space-y-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={true}
+                            className="mt-3"
+                          />
+                          <label>{completedItem.text}</label>
+                        </div>
+                      ))}
                     </div>
+
+                    {!!comments.length && (
+                      <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                        {comments}
+                      </div>
+                    )}
                     <Button
                       variant="link"
                       className="w-full text-red-500"

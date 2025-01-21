@@ -82,7 +82,7 @@ function NewClass() {
     <div className="md:px-24 px-6 py-12 space-y-4">
       <div className="w-full items-center flex justify-between mb-8">
         <Label className="text-4xl">Nova Aula</Label>
-        <Button disabled={step < 3} onClick={startClass} size="sm">
+        <Button disabled={step < 3} onClick={startClass}>
           Iniciar Aula
         </Button>
       </div>

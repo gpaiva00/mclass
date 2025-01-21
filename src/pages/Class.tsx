@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -20,8 +21,9 @@ interface CheckedItem {
 function Class() {
   const [comments, setComments] = useState("");
   const [checkedItems, setCheckedItems] = useState<CheckedItem[]>([]);
+  const [currentDate, setCurrentDate] = useState("");
 
-  const [currentClassData] = useLocalStorage<Class | null>(
+  const [currentClassData, setCurrentClassData] = useLocalStorage<Class | null>(
     "currentClass",
     null,
   );
@@ -49,13 +51,20 @@ function Class() {
   function handleCheckboxChange(id: string, text: string) {
     setCheckedItems((prev) => {
       const isItemChecked = prev.some((item) => item.id === id);
-
-      if (isItemChecked) {
-        return prev.filter((item) => item.id !== id);
-      } else {
-        return [...prev, { id, text }];
-      }
+      return isItemChecked
+        ? prev.filter((item) => item.id !== id)
+        : [...prev, { id, text }];
     });
+  }
+
+  function handleDateChange(value: string) {
+    setCurrentDate(value);
+    if (currentClassData) {
+      setCurrentClassData({
+        ...currentClassData,
+        date: value,
+      });
+    }
   }
 
   function handleFinish() {
@@ -66,62 +75,79 @@ function Class() {
     };
 
     setClasses((_classes) => [..._classes, data]);
-
     navigate("/");
   }
 
+  useEffect(() => {
+    if (currentClassData?.date) {
+      setCurrentDate(currentClassData.date);
+    }
+  }, [currentClassData?.date]);
+
   return (
     <div className="md:px-24 px-6 py-12 space-y-4">
-      <div className="w-full items-center flex justify-between mb-8">
-        <Label className="text-2xl">Aula {currentClassData?.date}</Label>
-        <Button onClick={handleFinish} disabled={noCheckedItems} size="sm">
+      <div className="w-full flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-semibold">Nova Aula</h1>
+        <Button onClick={handleFinish} disabled={noCheckedItems}>
           Finalizar Aula
         </Button>
       </div>
 
-      <div className="bg-zinc-100 flex items-center justify-between py-4 px-6 rounded-lg">
-        <Label>Aluno selecionado: {student?.name}</Label>
-      </div>
+      <div className="space-y-4">
+        <div className="bg-zinc-100 flex items-center justify-between py-4 px-6 rounded-lg">
+          <Label>Aluno selecionado: {student?.name}</Label>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-md">Itens da Aula</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          {lesson?.items.map((lessonItem, index) => (
-            <div key={index} className="flex items-center gap-2 space-y-2">
-              <input
-                type="checkbox"
-                id={lessonItem.id}
-                checked={checkedItems.some((item) => item.id === lessonItem.id)}
-                onChange={() =>
-                  handleCheckboxChange(
-                    lessonItem.id,
-                    lessonItem.description || "",
-                  )
-                }
-                className="mt-3"
-              />
-              <label htmlFor={lessonItem.id}>{lessonItem.description}</label>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-md">Observações</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <Textarea
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Adicione algum comentário sobre a aula se preferir..."
+        <div className="flex items-center gap-2 w-full">
+          <Input
+            type="date"
+            value={currentDate}
+            onChange={(e) => handleDateChange(e.target.value)}
           />
-        </CardContent>
-      </Card>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-md">Itens da Aula</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            {lesson?.items.map((lessonItem, index) => (
+              <div key={index} className="flex items-center gap-2 space-y-2">
+                <input
+                  type="checkbox"
+                  id={lessonItem.id}
+                  checked={checkedItems.some(
+                    (item) => item.id === lessonItem.id,
+                  )}
+                  onChange={() =>
+                    handleCheckboxChange(
+                      lessonItem.id,
+                      lessonItem.description || "",
+                    )
+                  }
+                  className="mt-3"
+                />
+                <label htmlFor={lessonItem.id}>{lessonItem.description}</label>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-md">Observações</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <Textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Adicione algum comentário sobre a aula se preferir..."
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
