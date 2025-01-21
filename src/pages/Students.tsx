@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nanoid } from "nanoid";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import InputMask from "react-input-mask";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -28,10 +28,18 @@ import { useLocalStorage } from "@/utils/storage";
 
 const formSchema = z.object({
   id: z.string(),
-  studentNumber: z.string().length(5),
-  name: z.string().min(2).max(50),
-  phone: z.string().min(8).max(15),
-  cpf: z.string().min(11).max(14).optional(),
+  studentNumber: z.string().length(5, "Número do aluno deve ter 5 dígitos"),
+  name: z
+    .string()
+    .min(2, "Nome deve ter no mínimo 2 caracteres")
+    .max(50, "Nome deve ter no máximo 50 caracteres"),
+  phone: z.string().min(14, "Telefone inválido").max(15),
+  cpf: z
+    .string()
+    .min(14, "CPF inválido")
+    .max(14)
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
 });
 
 type Student = z.infer<typeof formSchema>;
@@ -40,9 +48,32 @@ function generateStudentNumber() {
   return Math.floor(10000 + Math.random() * 90000).toString();
 }
 
+// Componente customizado para Input com máscara
+const MaskedInput = forwardRef<
+  HTMLInputElement,
+  {
+    mask: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+    className?: string;
+  }
+>((props, ref) => (
+  <InputMask
+    mask={props.mask}
+    value={props.value}
+    onChange={props.onChange}
+    className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${props.className}`}
+    placeholder={props.placeholder}
+  >
+    {(inputProps: any) => <input ref={ref} {...inputProps} />}
+  </InputMask>
+));
+
+MaskedInput.displayName = "MaskedInput";
+
 function Students() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const form = useForm<Student>({
@@ -72,10 +103,6 @@ function Students() {
     setIsModalOpen((prev) => !prev);
   }
 
-  function toggleRemoveModal() {
-    setIsRemoveModalOpen((prev) => !prev);
-  }
-
   function handleEditStudent(student: Student) {
     setSelectedStudent(student);
     form.reset(student);
@@ -84,14 +111,12 @@ function Students() {
 
   function handleSubmit(student: Student) {
     if (selectedStudent) {
-      // Edit existing student
       setStudents((_students) =>
         _students.map((s) =>
           s.id === selectedStudent.id ? { ...student, id: s.id } : s,
         ),
       );
     } else {
-      // Add new student
       setStudents((_students) => [
         ..._students,
         {
@@ -107,6 +132,7 @@ function Students() {
 
   function handleRemoveStudent(_id: string) {
     setStudents((prev) => prev.filter(({ id }) => id !== _id));
+    toggleModal();
   }
 
   return (
@@ -171,8 +197,11 @@ function Students() {
                   <FormItem>
                     <FormLabel>Número do Aluno</FormLabel>
                     <FormControl>
-                      <Input readOnly {...field} />
+                      <Input {...field} maxLength={5} placeholder="12345" />
                     </FormControl>
+                    <FormDescription>
+                      Número de identificação com 5 dígitos
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -203,11 +232,12 @@ function Students() {
                   <FormItem>
                     <FormLabel>Telefone para contato</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: (11) 91234-1234" {...field} />
+                      <MaskedInput
+                        mask="(99) 99999-9999"
+                        placeholder="Ex: (11) 91234-1234"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription>
-                      Digite no formato (xx) xxxxx-xxxxx
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -220,7 +250,11 @@ function Students() {
                   <FormItem>
                     <FormLabel>CPF</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: 123.456.789-00" {...field} />
+                      <MaskedInput
+                        mask="999.999.999-99"
+                        placeholder="Ex: 123.456.789-00"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -241,24 +275,6 @@ function Students() {
               )}
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isRemoveModalOpen} onOpenChange={toggleRemoveModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remover Aluno</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja remover o aluno?
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex justify-end space-x-4">
-            <Button variant="secondary" onClick={toggleRemoveModal}>
-              Cancelar
-            </Button>
-            <Button onClick={toggleRemoveModal}>Remover</Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>
