@@ -117,7 +117,7 @@ function Students() {
       </div>
 
       <div className="space-y-4">
-        {students.map(({ id, studentNumber, name, phone, cpf }, index) => (
+        {students.map(({ id, studentNumber, name, phone, cpf }) => (
           <div key={id} className="space-y-4">
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col space-y-1">

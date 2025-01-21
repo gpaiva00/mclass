@@ -1,6 +1,6 @@
 interface LessonItem {
   id: string;
-  description: string;
+  description?: string;
   completed: boolean;
 }
 
