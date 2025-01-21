@@ -11,12 +11,14 @@ import { Label } from "@/components/ui/label";
 
 import { useLocalStorage } from "@/utils/storage";
 
+import { Lesson } from "./Lessons";
 import type { Class } from "./NewClass";
 
 function Home() {
   const navigate = useNavigate();
 
   const [classes, setClasses] = useLocalStorage<Class[]>("classes", []);
+  const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
 
   function handleRemoveClass(_id: string) {
     setClasses((prev) => prev.filter(({ id }) => id !== _id));
@@ -58,43 +60,62 @@ function Home() {
 
           <Accordion type="single" collapsible>
             {classes.map(
-              ({ id, date, completedItems, studentName, comments }) => (
-                <AccordionItem key={id} value={`item-${id}`}>
-                  <AccordionTrigger>
-                    {date} - {studentName}
-                  </AccordionTrigger>
-                  <AccordionContent className="space-y-4">
-                    <div>
-                      {completedItems?.map((completedItem, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 space-y-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={true}
-                            className="mt-3"
-                          />
-                          <label>{completedItem.text}</label>
-                        </div>
-                      ))}
-                    </div>
+              ({
+                id,
+                date,
+                completedItems,
+                studentName,
+                comments,
+                lessonId,
+              }) => {
+                const lesson = lessons.find((lesson) => lesson.id === lessonId);
+                const formattedDate = new Date(date).toLocaleDateString(
+                  "pt-BR",
+                  {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  },
+                );
 
-                    {!!comments.length && (
-                      <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                        {comments}
+                return (
+                  <AccordionItem key={id} value={`item-${id}`}>
+                    <AccordionTrigger>
+                      {formattedDate} - {studentName} - {lesson?.title}
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4">
+                      <div>
+                        {completedItems?.map((completedItem, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 space-y-2"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              className="mt-3"
+                            />
+                            <label>{completedItem.text}</label>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                    <Button
-                      variant="link"
-                      className="w-full text-red-500"
-                      onClick={() => handleRemoveClass(id)}
-                    >
-                      Apagar Aula
-                    </Button>
-                  </AccordionContent>
-                </AccordionItem>
-              ),
+
+                      {!!comments.length && (
+                        <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                          {comments}
+                        </div>
+                      )}
+                      <Button
+                        variant="link"
+                        className="w-full text-red-500"
+                        onClick={() => handleRemoveClass(id)}
+                      >
+                        Apagar Aula
+                      </Button>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              },
             )}
           </Accordion>
         </div>
