@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,10 @@ interface CheckedItem {
 function Class() {
   const [comments, setComments] = useState("");
   const [checkedItems, setCheckedItems] = useState<CheckedItem[]>([]);
-  const [currentDate, setCurrentDate] = useState("");
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
 
   const [currentClassData, setCurrentClassData] = useLocalStorage<Class | null>(
     "currentClass",
@@ -59,50 +62,42 @@ function Class() {
 
   function handleDateChange(value: string) {
     setCurrentDate(value);
-    if (currentClassData) {
-      setCurrentClassData({
-        ...currentClassData,
-        date: value,
-      });
-    }
   }
 
   function handleFinish() {
+    console.debug({ currentDate });
     const data: Class = {
       ...currentClassData!,
       comments,
       completedItems: checkedItems,
+      date: currentDate,
     };
 
     setClasses((_classes) => [..._classes, data]);
     navigate("/");
   }
 
-  useEffect(() => {
-    if (currentClassData?.date) {
-      setCurrentDate(currentClassData.date);
-    }
-  }, [currentClassData?.date]);
-
   return (
     <div className="md:px-24 px-6 py-12 space-y-4">
       <div className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">Nova Aula</h1>
+        <Label className="text-4xl">Nova Aula</Label>
         <Button onClick={handleFinish} disabled={noCheckedItems}>
           Finalizar Aula
         </Button>
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-zinc-100 flex items-center justify-between py-4 px-6 rounded-lg">
+      <div className="space-y-6">
+        <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
           <Label>Aluno selecionado: {student?.name}</Label>
         </div>
 
-        <div className="flex items-center gap-2 w-full">
+        <div className="flex flex-col gap-2 w-full">
+          <Label>Data da aula</Label>
           <Input
             type="date"
             value={currentDate}
             onChange={(e) => handleDateChange(e.target.value)}
+            placeholder="Insira a data da aula"
           />
         </div>
 

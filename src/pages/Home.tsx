@@ -69,14 +69,13 @@ function Home() {
                 lessonId,
               }) => {
                 const lesson = lessons.find((lesson) => lesson.id === lessonId);
-                const formattedDate = new Date(date).toLocaleDateString(
-                  "pt-BR",
-                  {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  },
-                );
+                const formattedDate = new Date(
+                  date + "T00:00:00",
+                ).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                });
 
                 return (
                   <AccordionItem key={id} value={`item-${id}`}>

@@ -88,10 +88,10 @@ function NewClass() {
       </div>
 
       {selectedStudent && (
-        <div className="bg-zinc-100 flex items-center justify-between py-4 px-6 rounded-lg">
+        <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
           <Label>{selectedStudent.name}</Label>
           <Button variant="link" onClick={handleEditStudent}>
-            Editar
+            Trocar
           </Button>
         </div>
       )}
@@ -125,10 +125,10 @@ function NewClass() {
       )}
 
       {selectedLesson && step != 2 && (
-        <div className="bg-zinc-100 flex items-center justify-between py-4 px-6 rounded-lg">
+        <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
           <Label>Plano de Aula: {selectedLesson.title}</Label>
           <Button variant="link" onClick={handleEditLesson}>
-            Editar
+            Trocar
           </Button>
         </div>
       )}
