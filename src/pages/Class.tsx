@@ -26,7 +26,7 @@ function Class() {
     return today.toISOString().split("T")[0];
   });
 
-  const [currentClassData, setCurrentClassData] = useLocalStorage<Class | null>(
+  const [currentClassData] = useLocalStorage<Class | null>(
     "currentClass",
     null,
   );

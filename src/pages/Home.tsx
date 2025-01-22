@@ -54,6 +54,12 @@ function Home() {
         </div>
       </div>
 
+      {!classes.length && (
+        <p className="text-muted-foreground text-center">
+          As aulas aparecerão aqui.
+        </p>
+      )}
+
       {!!classes.length && (
         <div className="space-y-4 mt-6">
           <Label className="text-2xl">Aulas Feitas</Label>
