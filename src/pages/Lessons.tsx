@@ -116,13 +116,14 @@ function Lessons() {
 
   const [lessons, setLessons] = useLocalStorage<Lesson[]>("lessons", []);
 
-  // Group lessons by category
   const lessonsByCategory = lessons.reduce(
     (acc, lesson) => {
       const category = lessonCategories.find(
         (cat) => cat.id === lesson.categoryId,
       );
+
       if (category) {
+        // Lição com categoria
         if (!acc[category.id]) {
           acc[category.id] = {
             category,
@@ -130,7 +131,23 @@ function Lessons() {
           };
         }
         acc[category.id].lessons.push(lesson);
+      } else {
+        // Lição sem categoria
+        const uncategorizedId = "uncategorized";
+        if (!acc[uncategorizedId]) {
+          acc[uncategorizedId] = {
+            category: {
+              id: uncategorizedId,
+              name: "Sem categoria",
+              slug: "sem-categoria",
+              description: "Lições sem categoria definida",
+            },
+            lessons: [],
+          };
+        }
+        acc[uncategorizedId].lessons.push(lesson);
       }
+
       return acc;
     },
     {} as Record<string, { category: Category; lessons: Lesson[] }>,
