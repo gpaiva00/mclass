@@ -1,43 +1,43 @@
 import { useLocalStorage } from "@/utils/storage";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil, X } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 
 import { lessonCategories } from "@/constants/lessonCategories";
-
 import type { LessonItem } from "@/types";
 
 interface Category {
@@ -47,24 +47,10 @@ interface Category {
   description?: string;
 }
 
+// Componente para adicionar novos itens
 interface AddLessonItemProps {
   onAdd: (item: LessonItem) => void;
 }
-
-const lessonsSchema = z.object({
-  id: z.string(),
-  title: z.string().min(2).max(50),
-  categoryId: z.string().min(1, "A categoria é obrigatória"),
-  items: z.array(
-    z.object({
-      id: z.string(),
-      description: z.string().min(8).max(255).optional(),
-      completed: z.boolean().default(false),
-    }),
-  ),
-});
-
-type Lesson = z.infer<typeof lessonsSchema>;
 
 function AddLessonItem({ onAdd }: AddLessonItemProps) {
   const [description, setDescription] = useState("");
@@ -99,10 +85,65 @@ function AddLessonItem({ onAdd }: AddLessonItemProps) {
   );
 }
 
+// Componente para editar itens existentes
+interface EditLessonItemProps {
+  item: LessonItem;
+  onSave: (updatedItem: LessonItem) => void;
+  onCancel: () => void;
+}
+
+function EditLessonItem({ item, onSave, onCancel }: EditLessonItemProps) {
+  const [description, setDescription] = useState(item.description);
+
+  const handleSave = () => {
+    if (description.trim()) {
+      onSave({
+        ...item,
+        description: description.trim(),
+      });
+    }
+  };
+
+  return (
+    <div className="flex items-center space-x-2 px-4 py-2 bg-zinc-100 rounded-md">
+      <Input
+        type="text"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="flex-grow"
+      />
+      <div className="flex space-x-2">
+        <Button onClick={handleSave} variant="secondary" size="sm">
+          Salvar
+        </Button>
+        <Button onClick={onCancel} variant="outline" size="sm">
+          Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+const lessonsSchema = z.object({
+  id: z.string(),
+  title: z.string().min(2).max(50),
+  categoryId: z.string().min(1, "A categoria é obrigatória"),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      description: z.string().min(8).max(255).optional(),
+      completed: z.boolean().default(false),
+    }),
+  ),
+});
+
+type Lesson = z.infer<typeof lessonsSchema>;
+
 function Lessons() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [items, setItems] = useState<LessonItem[]>([]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const form = useForm<Lesson>({
     resolver: zodResolver(lessonsSchema),
@@ -116,14 +157,13 @@ function Lessons() {
 
   const [lessons, setLessons] = useLocalStorage<Lesson[]>("lessons", []);
 
+  // Agrupamento de lições por categoria
   const lessonsByCategory = lessons.reduce(
     (acc, lesson) => {
       const category = lessonCategories.find(
         (cat) => cat.id === lesson.categoryId,
       );
-
       if (category) {
-        // Lição com categoria
         if (!acc[category.id]) {
           acc[category.id] = {
             category,
@@ -132,7 +172,6 @@ function Lessons() {
         }
         acc[category.id].lessons.push(lesson);
       } else {
-        // Lição sem categoria
         const uncategorizedId = "uncategorized";
         if (!acc[uncategorizedId]) {
           acc[uncategorizedId] = {
@@ -147,7 +186,6 @@ function Lessons() {
         }
         acc[uncategorizedId].lessons.push(lesson);
       }
-
       return acc;
     },
     {} as Record<string, { category: Category; lessons: Lesson[] }>,
@@ -157,6 +195,7 @@ function Lessons() {
     if (!isModalOpen) {
       setSelectedLesson(null);
       setItems([]);
+      setEditingItemId(null);
       form.reset({
         id: "",
         title: "",
@@ -167,12 +206,31 @@ function Lessons() {
     setIsModalOpen((prev) => !prev);
   }
 
+  // Funções para manipulação dos itens
   const handleAddItem = (item: LessonItem) => {
     setItems([...items, item]);
   };
 
   const handleRemoveItem = (id: string) => {
     setItems(items.filter((item) => item.id !== id));
+    if (editingItemId === id) {
+      setEditingItemId(null);
+    }
+  };
+
+  const handleEditItem = (id: string) => {
+    setEditingItemId(id);
+  };
+
+  const handleUpdateItem = (updatedItem: LessonItem) => {
+    setItems(items.map(item =>
+      item.id === updatedItem.id ? updatedItem : item
+    ));
+    setEditingItemId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
   };
 
   function handleRemoveLesson(id: string) {
@@ -182,6 +240,7 @@ function Lessons() {
   function handleEditLesson(lesson: Lesson) {
     setSelectedLesson(lesson);
     setItems(lesson.items);
+    setEditingItemId(null);
     form.reset({
       ...lesson,
     });
@@ -209,14 +268,12 @@ function Lessons() {
     data.items = items;
 
     if (selectedLesson) {
-      // Edit existing lesson
       setLessons((_lessons) =>
         _lessons.map((lesson) =>
           lesson.id === selectedLesson.id ? { ...data, id: lesson.id } : lesson,
         ),
       );
     } else {
-      // Add new lesson
       setLessons((_lessons) => [
         ..._lessons,
         {
@@ -227,6 +284,7 @@ function Lessons() {
     }
 
     setItems([]);
+    setEditingItemId(null);
     form.reset();
     toggleModal();
   }
@@ -346,19 +404,36 @@ function Lessons() {
 
             <div className="my-6 space-y-2 overflow-y-auto max-h-40">
               {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between px-4 bg-zinc-100 rounded-md"
-                >
-                  <span>{item.description}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="mr-4 text-red-500"
-                  >
-                    Remover
-                  </Button>
+                <div key={item.id}>
+                  {editingItemId === item.id ? (
+                    <EditLessonItem
+                      item={item}
+                      onSave={handleUpdateItem}
+                      onCancel={handleCancelEdit}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 rounded-md">
+                      <span>{item.description}</span>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditItem(item.id)}
+                          className="text-blue-500"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
