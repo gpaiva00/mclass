@@ -7,34 +7,34 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 import { lessonCategories } from "@/constants/lessonCategories";
@@ -96,10 +96,10 @@ function EditLessonItem({ item, onSave, onCancel }: EditLessonItemProps) {
   const [description, setDescription] = useState(item.description);
 
   const handleSave = () => {
-    if (description.trim()) {
+    if (description?.trim()) {
       onSave({
         ...item,
-        description: description.trim(),
+        description: description?.trim(),
       });
     }
   };
@@ -223,9 +223,9 @@ function Lessons() {
   };
 
   const handleUpdateItem = (updatedItem: LessonItem) => {
-    setItems(items.map(item =>
-      item.id === updatedItem.id ? updatedItem : item
-    ));
+    setItems(
+      items.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
+    );
     setEditingItemId(null);
   };
 
