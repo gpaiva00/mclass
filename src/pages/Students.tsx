@@ -15,7 +15,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,7 +27,7 @@ import { useLocalStorage } from "@/utils/storage";
 
 const formSchema = z.object({
   id: z.string(),
-  studentNumber: z.string().length(5, "Número do aluno deve ter 5 dígitos"),
+  studentNumber: z.string().optional(),
   name: z
     .string()
     .min(2, "Nome deve ter no mínimo 2 caracteres")
@@ -43,10 +42,6 @@ const formSchema = z.object({
 });
 
 type Student = z.infer<typeof formSchema>;
-
-function generateStudentNumber() {
-  return Math.floor(10000 + Math.random() * 90000).toString();
-}
 
 const MaskedInput = forwardRef<
   HTMLInputElement,
@@ -83,7 +78,7 @@ function Students() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: "",
-      studentNumber: generateStudentNumber(),
+      studentNumber: "",
       name: "",
       phone: "",
       cpf: "",
@@ -97,7 +92,7 @@ function Students() {
       setSelectedStudent(null);
       form.reset({
         id: "",
-        studentNumber: generateStudentNumber(),
+        studentNumber: "",
         name: "",
         phone: "",
         cpf: "",
@@ -139,11 +134,17 @@ function Students() {
   }
 
   return (
-    <div className="px-6 md:px-24 py-12 space-y-8">
+    <div className="container space-y-8">
       <div className="w-full items-center flex justify-between">
         <Label className="text-4xl">Alunos</Label>
         <Button onClick={toggleModal}>Novo Aluno</Button>
       </div>
+
+      {students.length === 0 && (
+        <p className="text-muted-foreground text-center">
+          Nenhum aluno cadastrado.
+        </p>
+      )}
 
       <div className="space-y-4">
         {students.map(({ id, studentNumber, name, phone, cpf }) => (
@@ -152,14 +153,16 @@ function Students() {
               <div className="flex flex-col space-y-1">
                 <div className="flex items-center gap-2">
                   <Label className="text-lg">{name}</Label>
-                  <span className="text-sm text-muted-foreground">
-                    #{studentNumber}
-                  </span>
+                  {!!studentNumber?.length && (
+                    <span className="text-sm text-muted-foreground">
+                      #{studentNumber}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="link"
+                  variant="outline"
                   onClick={() =>
                     handleEditStudent({
                       id,
@@ -177,8 +180,6 @@ function Students() {
             <hr />
           </div>
         ))}
-
-        {students.length === 0 && <p>Nenhum aluno cadastrado.</p>}
       </div>
 
       <Dialog modal open={isModalOpen} onOpenChange={toggleModal}>
@@ -202,9 +203,6 @@ function Students() {
                     <FormControl>
                       <Input {...field} maxLength={5} placeholder="12345" />
                     </FormControl>
-                    <FormDescription>
-                      Número de identificação com 5 dígitos
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

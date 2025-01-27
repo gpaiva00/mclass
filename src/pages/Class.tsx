@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { lessonCategories } from "@/constants/lessonCategories";
 import { useLocalStorage } from "@/utils/storage";
 
 import type { Lesson } from "./Lessons";
@@ -19,6 +20,8 @@ interface CheckedItem {
 }
 
 function Class() {
+  const navigate = useNavigate();
+
   const [comments, setComments] = useState("");
   const [checkedItems, setCheckedItems] = useState<CheckedItem[]>([]);
   const [currentDate, setCurrentDate] = useState(() => {
@@ -32,7 +35,6 @@ function Class() {
   );
 
   const [, setClasses] = useLocalStorage<Class[]>("classes", []);
-
   const [students] = useLocalStorage<Student[]>("students", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
 
@@ -49,8 +51,6 @@ function Class() {
     [checkedItems],
   );
 
-  const navigate = useNavigate();
-
   function handleCheckboxChange(id: string, text: string) {
     setCheckedItems((prev) => {
       const isItemChecked = prev.some((item) => item.id === id);
@@ -65,7 +65,6 @@ function Class() {
   }
 
   function handleFinish() {
-    console.debug({ currentDate });
     const data: Class = {
       ...currentClassData!,
       comments,
@@ -78,19 +77,29 @@ function Class() {
   }
 
   return (
-    <div className="md:px-24 px-6 py-12 space-y-4">
+    <div className="container space-y-8">
       <div className="w-full flex justify-between items-center mb-8">
-        <Label className="text-4xl">Nova Aula</Label>
+        <Label className="text-4xl">Aula</Label>
         <Button onClick={handleFinish} disabled={noCheckedItems}>
           Finalizar Aula
         </Button>
       </div>
-
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
           <Label>Aluno selecionado: {student?.name}</Label>
         </div>
-
+        <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
+          <Label>
+            Categoria:{" "}
+            {
+              lessonCategories.find(
+                (cat) => cat.id === currentClassData?.categoryId,
+              )?.name
+            }
+          </Label>
+        </div>
+      </div>
+      <div className="space-y-6">
         <div className="flex flex-col gap-2 w-full">
           <Label>Data da aula</Label>
           <Input
@@ -142,6 +151,14 @@ function Class() {
             />
           </CardContent>
         </Card>
+
+        <Button
+          onClick={handleFinish}
+          disabled={noCheckedItems}
+          className="w-full"
+        >
+          Finalizar Aula
+        </Button>
       </div>
     </div>
   );
