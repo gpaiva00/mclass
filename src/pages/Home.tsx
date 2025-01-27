@@ -25,7 +25,9 @@ function Home() {
       const category = classCategories.find(
         (cat) => cat.id === _class.categoryId,
       );
+
       if (category) {
+        // Aula com categoria
         if (!acc[category.id]) {
           acc[category.id] = {
             category,
@@ -33,7 +35,23 @@ function Home() {
           };
         }
         acc[category.id].classes.push(_class);
+      } else {
+        // Aula sem categoria
+        const uncategorizedId = "uncategorized";
+        if (!acc[uncategorizedId]) {
+          acc[uncategorizedId] = {
+            category: {
+              id: uncategorizedId,
+              name: "Sem categoria",
+              slug: "sem-categoria",
+              description: "Aulas sem categoria definida",
+            },
+            classes: [],
+          };
+        }
+        acc[uncategorizedId].classes.push(_class);
       }
+
       return acc;
     },
     {} as Record<string, { category: Category; classes: Class[] }>,
