@@ -27,9 +27,10 @@ interface Class {
   studentName: string;
   lessonId: string;
   comments: string;
-  categoryId: string;
   date: string;
   completedItems?: CheckedItem[];
+  isEditing?: boolean;
+  categoryId?: string;
 }
 
 function NewClass() {
@@ -104,7 +105,7 @@ function NewClass() {
   }
 
   return (
-    <div className="container space-y-8">
+    <div className="container space-y-6">
       <div className="w-full items-center flex justify-between mb-8">
         <Label className="text-4xl">Nova Aula</Label>
         <Button disabled={step < 3} onClick={startClass}>
@@ -167,7 +168,7 @@ function NewClass() {
             {Object.entries(lessonsByCategory).map(
               ([categoryId, { category, lessons }]) => (
                 <div key={categoryId} className="space-y-4">
-                  <h2 className="text-xl font-semibold">{category.name}</h2>
+                  <h2 className="text-base font-semibold">{category.name}</h2>
                   <Accordion type="single" collapsible>
                     {lessons.map((lesson) => (
                       <AccordionItem key={lesson.id} value={lesson.id}>

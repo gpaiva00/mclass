@@ -447,7 +447,7 @@ function Lessons() {
                 className="w-full text-red-500"
                 onClick={() => handleRemoveLesson(selectedLesson.id)}
               >
-                Remover Plano de Aula
+                Apagar Plano de Aula
               </Button>
             )}
           </Form>

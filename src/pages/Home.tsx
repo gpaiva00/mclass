@@ -17,7 +17,7 @@ import type { Class } from "./NewClass";
 
 function Home() {
   const navigate = useNavigate();
-  const [classes, setClasses] = useLocalStorage<Class[]>("classes", []);
+  const [classes] = useLocalStorage<Class[]>("classes", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
   const [, setCurrentClassData] = useLocalStorage<Class | null>(
     "currentClass",
@@ -59,10 +59,6 @@ function Home() {
     },
     {} as Record<string, { category: Category; classes: Class[] }>,
   );
-
-  function handleRemoveClass(_id: string) {
-    setClasses((prev) => prev.filter(({ id }) => id !== _id));
-  }
 
   function handleEditClass(classData: Class) {
     setCurrentClassData({
@@ -145,13 +141,6 @@ function Home() {
                       >
                         Editar Aula
                       </Button>
-                      {/* <Button
-                          variant="link"
-                          className="text-red-500"
-                          onClick={() => handleRemoveClass(id)}
-                        >
-                          Apagar Aula
-                        </Button> */}
                     </AccordionContent>
                   </AccordionItem>
                 );

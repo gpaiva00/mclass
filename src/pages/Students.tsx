@@ -272,7 +272,7 @@ function Students() {
                   onClick={() => handleRemoveStudent(selectedStudent.id)}
                   className="text-red-500 w-full"
                 >
-                  Remover Aluno
+                  Apagar Aluno
                 </Button>
               )}
             </form>

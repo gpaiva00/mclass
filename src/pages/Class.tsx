@@ -26,7 +26,7 @@ function Class() {
     "currentClass",
     null,
   );
-  const [classes, setClasses] = useLocalStorage<Class[]>("classes", []);
+  const [, setClasses] = useLocalStorage<Class[]>("classes", []);
   const [students] = useLocalStorage<Student[]>("students", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
 
@@ -91,6 +91,10 @@ function Class() {
     }
 
     navigate("/");
+  }
+
+  function handleRemoveClass() {
+    setClasses((prev) => prev.filter(({ id }) => id !== currentClassData?.id));
   }
 
   return (
@@ -168,14 +172,24 @@ function Class() {
             />
           </CardContent>
         </Card>
-
-        <Button
-          onClick={handleFinish}
-          disabled={noCheckedItems}
-          className="w-full"
-        >
-          {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
-        </Button>
+        <div className="space-y-4">
+          <Button
+            onClick={handleFinish}
+            disabled={noCheckedItems}
+            className="w-full"
+          >
+            {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
+          </Button>
+          {isEditing && (
+            <Button
+              variant="link"
+              className="text-red-500 w-full"
+              onClick={handleRemoveClass}
+            >
+              Apagar Aula
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
