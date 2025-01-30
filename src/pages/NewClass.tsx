@@ -104,6 +104,11 @@ function NewClass() {
       studentName: selectedStudent.name,
       categoryId: selectedLesson.categoryId,
       comments: "",
+      startTime: "",
+      endTime: "",
+      teacherSignature: "",
+      studentSignature: "",
+      duration: 0,
     });
 
     navigate("/aula");
