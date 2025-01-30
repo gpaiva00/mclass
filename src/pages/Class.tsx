@@ -22,21 +22,25 @@ interface CheckedItem {
 function Class() {
   const navigate = useNavigate();
 
-  const [comments, setComments] = useState("");
-  const [checkedItems, setCheckedItems] = useState<CheckedItem[]>([]);
-  const [currentDate, setCurrentDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  });
-
   const [currentClassData] = useLocalStorage<Class | null>(
     "currentClass",
     null,
   );
-
-  const [, setClasses] = useLocalStorage<Class[]>("classes", []);
+  const [classes, setClasses] = useLocalStorage<Class[]>("classes", []);
   const [students] = useLocalStorage<Student[]>("students", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
+
+  const [comments, setComments] = useState(currentClassData?.comments || "");
+  const [checkedItems, setCheckedItems] = useState<CheckedItem[]>(
+    currentClassData?.completedItems || [],
+  );
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (currentClassData?.date) {
+      return currentClassData.date;
+    }
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
 
   const student = students.find(
     (_student) => _student.id === currentClassData?.studentId,
@@ -50,6 +54,8 @@ function Class() {
     () => Object.values(checkedItems).every((value) => !value),
     [checkedItems],
   );
+
+  const isEditing = currentClassData?.isEditing;
 
   function handleCheckboxChange(id: string, text: string) {
     setCheckedItems((prev) => {
@@ -65,23 +71,34 @@ function Class() {
   }
 
   function handleFinish() {
-    const data: Class = {
+    const updatedClassData: Class = {
       ...currentClassData!,
       comments,
       completedItems: checkedItems,
       date: currentDate,
     };
 
-    setClasses((_classes) => [..._classes, data]);
+    if (isEditing) {
+      // Modo edição - atualiza a aula existente
+      setClasses((_classes) =>
+        _classes.map((c) =>
+          c.id === currentClassData?.id ? updatedClassData : c,
+        ),
+      );
+    } else {
+      // Modo criação - adiciona nova aula
+      setClasses((_classes) => [..._classes, updatedClassData]);
+    }
+
     navigate("/");
   }
 
   return (
     <div className="container space-y-8">
       <div className="w-full flex justify-between items-center mb-8">
-        <Label className="text-4xl">Aula</Label>
+        <Label className="text-3xl">{isEditing ? "Editar Aula" : "Aula"}</Label>
         <Button onClick={handleFinish} disabled={noCheckedItems}>
-          Finalizar Aula
+          {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
         </Button>
       </div>
       <div className="space-y-4">
@@ -157,7 +174,7 @@ function Class() {
           disabled={noCheckedItems}
           className="w-full"
         >
-          Finalizar Aula
+          {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
         </Button>
       </div>
     </div>

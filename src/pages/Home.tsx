@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router";
+
 import {
   Accordion,
   AccordionContent,
@@ -14,10 +16,13 @@ import { Category, Lesson } from "./Lessons";
 import type { Class } from "./NewClass";
 
 function Home() {
-  // const navigate = useNavigate();
-
+  const navigate = useNavigate();
   const [classes, setClasses] = useLocalStorage<Class[]>("classes", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
+  const [, setCurrentClassData] = useLocalStorage<Class | null>(
+    "currentClass",
+    null,
+  );
 
   // Group class by category
   const classByCategory = classes.reduce(
@@ -27,7 +32,6 @@ function Home() {
       );
 
       if (category) {
-        // Aula com categoria
         if (!acc[category.id]) {
           acc[category.id] = {
             category,
@@ -36,7 +40,6 @@ function Home() {
         }
         acc[category.id].classes.push(_class);
       } else {
-        // Aula sem categoria
         const uncategorizedId = "uncategorized";
         if (!acc[uncategorizedId]) {
           acc[uncategorizedId] = {
@@ -61,10 +64,18 @@ function Home() {
     setClasses((prev) => prev.filter(({ id }) => id !== _id));
   }
 
+  function handleEditClass(classData: Class) {
+    setCurrentClassData({
+      ...classData,
+      isEditing: true, // Flag para identificar modo de edição
+    });
+    navigate("/aula");
+  }
+
   return (
     <div className="container space-y-8">
       <div className="w-full items-center flex justify-between">
-        <Label className="text-3xl">Aulas Feitas</Label>
+        <Label className="text-3xl">Aulas Realizadas</Label>
       </div>
 
       {!classes.length && (
@@ -75,69 +86,76 @@ function Home() {
 
       {Object.entries(classByCategory).map(
         ([categoryId, { category, classes }]) => (
-          <div key={categoryId} className="space-y-4">
-            <h2 className="text-2xl font-semibold">{category.name}</h2>
+          <div key={categoryId}>
+            <h2 className="text-xl font-semibold">{category.name}</h2>
             <Accordion type="single" collapsible className="mb-8">
-              {classes.map(
-                ({
+              {classes.map((classData) => {
+                const {
                   id,
                   date,
                   completedItems,
                   studentName,
                   comments,
                   lessonId,
-                }) => {
-                  const lesson = lessons.find(
-                    (lesson) => lesson.id === lessonId,
-                  );
+                } = classData;
 
-                  const formattedDate = new Date(
-                    date + "T00:00:00",
-                  ).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  });
+                const lesson = lessons.find((lesson) => lesson.id === lessonId);
 
-                  return (
-                    <AccordionItem key={id} value={`item-${id}`}>
-                      <AccordionTrigger>
-                        {formattedDate} - {studentName} - {lesson?.title}
-                      </AccordionTrigger>
-                      <AccordionContent className="space-y-4">
-                        <div>
-                          {completedItems?.map((completedItem, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 space-y-2"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={true}
-                                className="mt-3"
-                              />
-                              <label>{completedItem.text}</label>
-                            </div>
-                          ))}
-                        </div>
+                const formattedDate = new Date(
+                  date + "T00:00:00",
+                ).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                });
 
-                        {!!comments.length && (
-                          <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                            {comments}
+                return (
+                  <AccordionItem key={id} value={`item-${id}`}>
+                    <AccordionTrigger className="text-start">
+                      {formattedDate} - {studentName} - {lesson?.title}
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4">
+                      <div>
+                        {completedItems?.map((completedItem, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 space-y-2"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              readOnly
+                              className="mt-3"
+                            />
+                            <label>{completedItem.text}</label>
                           </div>
-                        )}
-                        <Button
+                        ))}
+                      </div>
+
+                      {!!comments?.length && (
+                        <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                          {comments}
+                        </div>
+                      )}
+
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleEditClass(classData)}
+                      >
+                        Editar Aula
+                      </Button>
+                      {/* <Button
                           variant="link"
-                          className="w-full text-red-500"
+                          className="text-red-500"
                           onClick={() => handleRemoveClass(id)}
                         >
                           Apagar Aula
-                        </Button>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                },
-              )}
+                        </Button> */}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
             </Accordion>
           </div>
         ),

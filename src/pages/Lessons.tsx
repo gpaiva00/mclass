@@ -305,7 +305,7 @@ function Lessons() {
       {Object.entries(lessonsByCategory).map(
         ([categoryId, { category, lessons }]) => (
           <div key={categoryId} className="space-y-4">
-            <h2 className="text-2xl font-semibold">{category.name}</h2>
+            <h2 className="text-xl font-semibold">{category.name}</h2>
             <Accordion type="single" collapsible className="mb-8">
               {lessons.map(({ id, title, items }) => (
                 <AccordionItem key={id} value={id}>

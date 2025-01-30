@@ -91,7 +91,6 @@ function Navbar() {
                 setIsOpen(false);
                 navigate("/nova-aula");
               }}
-              variant="outline"
             >
               Nova Aula
             </Button>
