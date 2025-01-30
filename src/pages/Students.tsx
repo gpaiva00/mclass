@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import InputMask from "react-input-mask";
 import { z } from "zod";
 
+import { SearchBar } from "@/components";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -71,6 +72,7 @@ const MaskedInput = forwardRef<
 MaskedInput.displayName = "MaskedInput";
 
 function Students() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
@@ -86,6 +88,12 @@ function Students() {
   });
 
   const [students, setStudents] = useLocalStorage<Student[]>("students", []);
+
+  const filteredStudents = students.filter(
+    (student) =>
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.studentNumber?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   function toggleModal() {
     if (!isModalOpen) {
@@ -140,14 +148,20 @@ function Students() {
         <Button onClick={toggleModal}>Novo Aluno</Button>
       </div>
 
-      {students.length === 0 && (
+      <SearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Pesquisar por nome ou número..."
+      />
+
+      {filteredStudents.length === 0 && (
         <p className="text-muted-foreground text-center">
-          Nenhum aluno cadastrado.
+          {searchTerm ? "Nenhum aluno encontrado." : "Nenhum aluno cadastrado."}
         </p>
       )}
 
       <div className="space-y-4">
-        {students.map(({ id, studentNumber, name, phone, cpf }) => (
+        {filteredStudents.map(({ id, studentNumber, name, phone, cpf }) => (
           <div key={id} className="space-y-4">
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col space-y-1">

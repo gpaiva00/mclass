@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SearchBar } from "@/components";
 import {
   Accordion,
   AccordionContent,
@@ -95,14 +96,14 @@ interface EditLessonItemProps {
 function EditLessonItem({ item, onSave, onCancel }: EditLessonItemProps) {
   const [description, setDescription] = useState(item.description);
 
-  const handleSave = () => {
+  function handleSave() {
     if (description?.trim()) {
       onSave({
         ...item,
         description: description?.trim(),
       });
     }
-  };
+  }
 
   return (
     <div className="flex items-center space-x-2 px-4 py-2 bg-zinc-100 rounded-md">
@@ -140,6 +141,8 @@ const lessonsSchema = z.object({
 type Lesson = z.infer<typeof lessonsSchema>;
 
 function Lessons() {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [items, setItems] = useState<LessonItem[]>([]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -191,6 +194,16 @@ function Lessons() {
     {} as Record<string, { category: Category; lessons: Lesson[] }>,
   );
 
+  const filteredLessonsByCategory = Object.entries(lessonsByCategory)
+    .map(([categoryId, { category, lessons }]) => ({
+      categoryId,
+      category,
+      lessons: lessons.filter((lesson) =>
+        lesson.title.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    }))
+    .filter(({ lessons }) => lessons.length > 0);
+
   function toggleModal() {
     if (!isModalOpen) {
       setSelectedLesson(null);
@@ -206,32 +219,31 @@ function Lessons() {
     setIsModalOpen((prev) => !prev);
   }
 
-  // Funções para manipulação dos itens
-  const handleAddItem = (item: LessonItem) => {
+  function handleAddItem(item: LessonItem) {
     setItems([...items, item]);
-  };
+  }
 
-  const handleRemoveItem = (id: string) => {
+  function handleRemoveItem(id: string) {
     setItems(items.filter((item) => item.id !== id));
     if (editingItemId === id) {
       setEditingItemId(null);
     }
-  };
+  }
 
-  const handleEditItem = (id: string) => {
+  function handleEditItem(id: string) {
     setEditingItemId(id);
-  };
+  }
 
-  const handleUpdateItem = (updatedItem: LessonItem) => {
+  function handleUpdateItem(updatedItem: LessonItem) {
     setItems(
       items.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
     );
     setEditingItemId(null);
-  };
+  }
 
-  const handleCancelEdit = () => {
+  function handleCancelEdit() {
     setEditingItemId(null);
-  };
+  }
 
   function handleRemoveLesson(id: string) {
     setLessons((_lessons) => _lessons.filter((item) => item.id !== id));
@@ -296,53 +308,59 @@ function Lessons() {
         <Button onClick={toggleModal}>Novo Plano</Button>
       </div>
 
-      {lessons.length === 0 && (
+      <SearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Pesquisar por título..."
+      />
+
+      {filteredLessonsByCategory.length === 0 && (
         <p className="text-muted-foreground text-center">
-          Nenhum plano de aulas cadastrado.
+          {searchTerm
+            ? "Nenhuma aula encontrada."
+            : "Nenhum plano de aulas cadastrado."}
         </p>
       )}
 
-      {Object.entries(lessonsByCategory).map(
-        ([categoryId, { category, lessons }]) => (
-          <div key={categoryId} className="space-y-4">
-            <h2 className="text-xl font-semibold">{category.name}</h2>
-            <Accordion type="single" collapsible className="mb-8">
-              {lessons.map(({ id, title, items }) => (
-                <AccordionItem key={id} value={id}>
-                  <AccordionTrigger className="group">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <span>{title}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="space-y-4">
-                    <ul className="space-y-2 list-disc list-inside">
-                      {items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="flex items-center justify-between px-2 rounded-md"
-                        >
-                          - {item.description}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditLesson({ id, title, categoryId, items });
-                      }}
-                      className="w-full"
-                    >
-                      Editar Plano de Aula
-                    </Button>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        ),
-      )}
+      {filteredLessonsByCategory.map(({ categoryId, category, lessons }) => (
+        <div key={categoryId} className="space-y-4">
+          <h2 className="text-xl font-semibold">{category.name}</h2>
+          <Accordion type="single" collapsible className="mb-8">
+            {lessons.map(({ id, title, items }) => (
+              <AccordionItem key={id} value={id}>
+                <AccordionTrigger className="group">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <span>{title}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  <ul className="space-y-2 list-disc list-inside">
+                    {items.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between px-2 rounded-md"
+                      >
+                        - {item.description}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditLesson({ id, title, categoryId, items });
+                    }}
+                    className="w-full"
+                  >
+                    Editar Plano de Aula
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      ))}
 
       <Dialog modal open={isModalOpen} onOpenChange={toggleModal}>
         <DialogContent>
