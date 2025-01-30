@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import { lessonCategories as classCategories } from "@/constants/lessonCategories";
-import { useLocalStorage } from "@/utils/storage";
+import { formatTime, useLocalStorage } from "@/utils";
 
 import { Category, Lesson } from "./Lessons";
 import type { Class } from "./NewClass";
@@ -93,10 +93,12 @@ function Home() {
                   studentName,
                   comments,
                   lessonId,
+                  duration,
+                  teacherSignature,
+                  studentSignature,
                 } = classData;
 
                 const lesson = lessons.find((lesson) => lesson.id === lessonId);
-
                 const formattedDate = new Date(
                   date + "T00:00:00",
                 ).toLocaleDateString("pt-BR", {
@@ -127,10 +129,25 @@ function Home() {
                           </div>
                         ))}
                       </div>
+                      {!!duration && (
+                        <div className="space-y-2">
+                          <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                            <p className="font-medium">
+                              Duração da aula: {formatTime(duration)}
+                            </p>
+                            {teacherSignature && (
+                              <p>Professor: {teacherSignature}</p>
+                            )}
+                            {studentSignature && (
+                              <p>Aluno: {studentSignature}</p>
+                            )}
+                          </div>
 
-                      {!!comments?.length && (
-                        <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                          {comments}
+                          {!!comments?.length && (
+                            <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                              {comments}
+                            </div>
+                          )}
                         </div>
                       )}
 

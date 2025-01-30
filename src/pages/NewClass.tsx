@@ -26,11 +26,16 @@ interface Class {
   studentId: string;
   studentName: string;
   lessonId: string;
+  categoryId: string;
   comments: string;
   date: string;
   completedItems?: CheckedItem[];
   isEditing?: boolean;
-  categoryId?: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  teacherSignature: string;
+  studentSignature: string;
 }
 
 function NewClass() {
