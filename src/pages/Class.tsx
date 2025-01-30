@@ -2,6 +2,7 @@ import { Clock, Pause, Play, Square } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
+import { SignatureModal } from "@/components";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { lessonCategories } from "@/constants/lessonCategories";
 import { formatTime, useLocalStorage } from "@/utils";
+
+import { Pen } from "lucide-react";
 
 import type { Lesson } from "./Lessons";
 import type { Class } from "./NewClass";
@@ -32,6 +35,11 @@ interface Signature {
   student: string;
 }
 
+interface Signature {
+  teacher: string;
+  student: string;
+}
+
 function Class() {
   const navigate = useNavigate();
   const timerRef = useRef<NodeJS.Timeout>();
@@ -43,6 +51,14 @@ function Class() {
   const [, setClasses] = useLocalStorage<Class[]>("classes", []);
   const [students] = useLocalStorage<Student[]>("students", []);
   const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
+
+  const [signatures, setSignatures] = useState<Signature>({
+    teacher: currentClassData?.teacherSignature || "",
+    student: currentClassData?.studentSignature || "",
+  });
+  const [signatureType, setSignatureType] = useState<
+    "teacher" | "student" | null
+  >(null);
 
   const [comments, setComments] = useState(currentClassData?.comments || "");
   const [checkedItems, setCheckedItems] = useState<CheckedItem[]>(
@@ -59,11 +75,6 @@ function Class() {
     endTime: currentClassData?.endTime || "",
     duration: currentClassData?.duration || 0,
     isRunning: false,
-  });
-
-  const [signatures, setSignatures] = useState<Signature>({
-    teacher: currentClassData?.teacherSignature || "",
-    student: currentClassData?.studentSignature || "",
   });
 
   const student = students.find(
@@ -134,10 +145,6 @@ function Class() {
     setCurrentDate(value);
   }
 
-  function handleSignatureChange(type: "teacher" | "student", value: string) {
-    setSignatures((prev) => ({ ...prev, [type]: value }));
-  }
-
   function handleFinish() {
     if (timer.isRunning) {
       handleStopTimer();
@@ -173,164 +180,239 @@ function Class() {
     navigate("/");
   }
 
+  function handleOpenSignature(type: "teacher" | "student") {
+    setSignatureType(type);
+  }
+
+  function handleCloseSignature() {
+    setSignatureType(null);
+  }
+
+  function handleSaveSignature(signature: string) {
+    if (signatureType) {
+      setSignatures((prev) => ({
+        ...prev,
+        [signatureType]: signature,
+      }));
+    }
+  }
+
   return (
-    <div className="container space-y-8">
-      <div className="w-full flex justify-between items-center mb-8">
-        <Label className="text-3xl">{isEditing ? "Editar Aula" : "Aula"}</Label>
-        <Button onClick={handleFinish} disabled={noCheckedItems}>
-          {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-md flex items-center gap-2">
-            <Clock className="h-5 w-5" /> Timer da Aula
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-3xl font-mono text-center">
-            {formatTime(timer.duration)}
-          </div>
-          <div className="flex justify-center gap-2">
-            {!timer.isRunning ? (
-              <Button onClick={handleStartTimer} className="w-24">
-                <Play className="h-4 w-4 mr-2" />
-                Iniciar
-              </Button>
-            ) : (
-              <Button onClick={handlePauseTimer} className="w-24">
-                <Pause className="h-4 w-4 mr-2" />
-                Pausar
-              </Button>
-            )}
-            <Button
-              onClick={handleStopTimer}
-              variant="outline"
-              className="w-24"
-            >
-              <Square className="h-4 w-4 mr-2" />
-              Parar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
-          <Label>Aluno selecionado: {student?.name}</Label>
-        </div>
-        <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
-          <Label>
-            Categoria:{" "}
-            {
-              lessonCategories.find(
-                (cat) => cat.id === currentClassData?.categoryId,
-              )?.name
-            }
+    <>
+      <div className="container space-y-8">
+        <div className="w-full flex justify-between items-center mb-8">
+          <Label className="text-3xl">
+            {isEditing ? "Editar Aula" : "Aula"}
           </Label>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2 w-full">
-          <Label>Data da aula</Label>
-          <Input
-            type="date"
-            value={currentDate}
-            onChange={(e) => handleDateChange(e.target.value)}
-            placeholder="Insira a data da aula"
-          />
+          <Button onClick={handleFinish} disabled={noCheckedItems}>
+            {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
+          </Button>
         </div>
 
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-md">Itens da Aula</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {lesson?.items.map((lessonItem, index) => (
-              <div key={index} className="flex items-center gap-2 space-y-2">
-                <input
-                  type="checkbox"
-                  id={lessonItem.id}
-                  checked={checkedItems.some(
-                    (item) => item.id === lessonItem.id,
-                  )}
-                  onChange={() =>
-                    handleCheckboxChange(
-                      lessonItem.id,
-                      lessonItem.description || "",
-                    )
-                  }
-                  className="mt-3"
-                />
-                <label htmlFor={lessonItem.id}>{lessonItem.description}</label>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-md">Observações</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-              placeholder="Adicione algum comentário sobre a aula se preferir..."
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-md">Assinaturas</CardTitle>
+            <CardTitle className="text-md flex items-center gap-2">
+              <Clock className="h-5 w-5" /> Timer da Aula
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Assinatura do Professor</Label>
-              <Input
-                value={signatures.teacher}
-                onChange={(e) =>
-                  handleSignatureChange("teacher", e.target.value)
-                }
-                placeholder="Digite seu nome completo"
-              />
+            <div className="text-3xl font-mono text-center">
+              {formatTime(timer.duration)}
             </div>
-            <div className="space-y-2">
-              <Label>Assinatura do Aluno</Label>
-              <Input
-                value={signatures.student}
-                onChange={(e) =>
-                  handleSignatureChange("student", e.target.value)
-                }
-                placeholder="Digite o nome completo do aluno"
-              />
+            <div className="flex justify-center gap-2">
+              {!timer.isRunning ? (
+                <Button onClick={handleStartTimer} className="w-24">
+                  <Play className="h-4 w-4 mr-2" />
+                  Iniciar
+                </Button>
+              ) : (
+                <Button onClick={handlePauseTimer} className="w-24">
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pausar
+                </Button>
+              )}
+              <Button
+                onClick={handleStopTimer}
+                variant="outline"
+                className="w-24"
+              >
+                <Square className="h-4 w-4 mr-2" />
+                Parar
+              </Button>
             </div>
           </CardContent>
         </Card>
 
         <div className="space-y-4">
-          <Button
-            onClick={handleFinish}
-            disabled={noCheckedItems}
-            className="w-full"
-          >
-            {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
-          </Button>
-          {isEditing && (
+          <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
+            <Label>Aluno selecionado: {student?.name}</Label>
+          </div>
+          <div className="bg-zinc-100 flex items-center justify-between py-4 px-4 rounded-lg">
+            <Label>
+              Categoria:{" "}
+              {
+                lessonCategories.find(
+                  (cat) => cat.id === currentClassData?.categoryId,
+                )?.name
+              }
+            </Label>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex flex-col gap-2 w-full">
+            <Label>Data da aula</Label>
+            <Input
+              type="date"
+              value={currentDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              placeholder="Insira a data da aula"
+            />
+          </div>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-md">Itens da Aula</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {lesson?.items.map((lessonItem, index) => (
+                <div key={index} className="flex items-center gap-2 space-y-2">
+                  <input
+                    type="checkbox"
+                    id={lessonItem.id}
+                    checked={checkedItems.some(
+                      (item) => item.id === lessonItem.id,
+                    )}
+                    onChange={() =>
+                      handleCheckboxChange(
+                        lessonItem.id,
+                        lessonItem.description || "",
+                      )
+                    }
+                    className="mt-3"
+                  />
+                  <label htmlFor={lessonItem.id}>
+                    {lessonItem.description}
+                  </label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-md">Observações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                placeholder="Adicione algum comentário sobre a aula se preferir..."
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-md">Assinaturas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Assinatura do Professor</Label>
+                <div className="flex gap-2">
+                  {signatures.teacher ? (
+                    <div className="border rounded-lg p-2 w-full">
+                      <img
+                        src={signatures.teacher}
+                        alt="Assinatura do professor"
+                        className="max-h-24"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenSignature("teacher")}
+                      className="w-full h-24 flex flex-col items-center justify-center gap-2"
+                    >
+                      <Pen className="h-6 w-6" />
+                      Assinar
+                    </Button>
+                  )}
+                  {signatures.teacher && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenSignature("teacher")}
+                      className="h-24"
+                    >
+                      <Pen className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Assinatura do Aluno</Label>
+                <div className="flex gap-2">
+                  {signatures.student ? (
+                    <div className="border rounded-lg p-2 w-full">
+                      <img
+                        src={signatures.student}
+                        alt="Assinatura do aluno"
+                        className="max-h-24"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenSignature("student")}
+                      className="w-full h-24 flex flex-col items-center justify-center gap-2"
+                    >
+                      <Pen className="h-6 w-6" />
+                      Assinar
+                    </Button>
+                  )}
+                  {signatures.student && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenSignature("student")}
+                      className="h-24"
+                    >
+                      <Pen className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-4">
             <Button
-              variant="link"
-              className="text-red-500 w-full"
-              onClick={handleRemoveClass}
+              onClick={handleFinish}
+              disabled={noCheckedItems}
+              className="w-full"
             >
-              Apagar Aula
+              {isEditing ? "Salvar Alterações" : "Finalizar Aula"}
             </Button>
-          )}
+            {isEditing && (
+              <Button
+                variant="link"
+                className="text-red-500 w-full"
+                onClick={handleRemoveClass}
+              >
+                Apagar Aula
+              </Button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <SignatureModal
+        isOpen={signatureType !== null}
+        onClose={handleCloseSignature}
+        onSave={handleSaveSignature}
+        title={`Assinatura do ${signatureType === "teacher" ? "Professor" : "Aluno"}`}
+      />
+    </>
   );
 }
 

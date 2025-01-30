@@ -129,23 +129,49 @@ function Home() {
                           </div>
                         ))}
                       </div>
-                      {!!duration && (
-                        <div className="space-y-2">
-                          <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                            <p className="font-medium">
-                              Duração da aula: {formatTime(duration)}
-                            </p>
-                            {teacherSignature && (
-                              <p>Professor: {teacherSignature}</p>
-                            )}
-                            {studentSignature && (
-                              <p>Aluno: {studentSignature}</p>
-                            )}
-                          </div>
 
-                          {!!comments?.length && (
-                            <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
-                              {comments}
+                      {!!duration && (
+                        <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                          <p className="font-medium">
+                            Duração da aula: {formatTime(duration)}
+                          </p>
+                        </div>
+                      )}
+
+                      {!!comments?.length && (
+                        <div className="bg-muted px-2 py-3 rounded-lg text-muted-foreground">
+                          {comments}
+                        </div>
+                      )}
+
+                      {(teacherSignature || studentSignature) && (
+                        <div className="grid grid-cols-2 gap-4">
+                          {teacherSignature && (
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Assinatura do Professor
+                              </p>
+                              <div className="border rounded-lg p-2 bg-white">
+                                <img
+                                  src={teacherSignature}
+                                  alt="Assinatura do professor"
+                                  className="h-16 object-contain"
+                                />
+                              </div>
+                            </div>
+                          )}
+                          {studentSignature && (
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Assinatura do Aluno
+                              </p>
+                              <div className="border rounded-lg p-2 bg-white">
+                                <img
+                                  src={studentSignature}
+                                  alt="Assinatura do aluno"
+                                  className="h-16 object-contain"
+                                />
+                              </div>
                             </div>
                           )}
                         </div>
