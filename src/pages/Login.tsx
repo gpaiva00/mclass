@@ -19,9 +19,9 @@ function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-24">
+    <div className="flex flex-col items-center justify-center min-h-screen px-12 md:px-24">
       <img src={logo} alt="Logo" className="w-24 mb-6" />
-      <h1 className="text-2xl font-bold mb-6">Bem-vindo ao Lana's Aulas</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Bem-vindo ao Lana's Aulas</h1>
       <Button
         onClick={() => loginWithRedirect()}
         className="w-full md:w-48"
