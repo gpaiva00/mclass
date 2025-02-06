@@ -153,7 +153,9 @@ function NewClass() {
                 <Separator />
               </div>
             ))}
-            {students.length === 0 && <p>Nenhum aluno cadastrado.</p>}
+            {students.length === 0 && (
+              <p className="text-muted-foreground">Nenhum aluno cadastrado.</p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -208,7 +210,11 @@ function NewClass() {
                 </div>
               ),
             )}
-            {lessons.length === 0 && <p>Nenhum plano de aulas cadastrado.</p>}
+            {lessons.length === 0 && (
+              <p className="text-muted-foreground">
+                Nenhum plano de aulas cadastrado.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

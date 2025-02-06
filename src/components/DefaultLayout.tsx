@@ -5,7 +5,9 @@ import { Navbar } from "@/components";
 function DefaultLayout() {
   return (
     <div className="flex min-h-screen flex-col w-full">
-      <Navbar />
+      <div className="flex justify-between items-center px-6">
+        <Navbar />
+      </div>
 
       <main className="md:px-64 px-6 py-8">
         <Outlet />
