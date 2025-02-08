@@ -8,23 +8,23 @@ import { z } from "zod";
 import { SearchBar } from "@/components";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { useLocalStorage } from "@/utils/storage";
+import { useCloudStorage } from "@/utils/storage";
 
 const formSchema = z.object({
   id: z.string(),
@@ -87,7 +87,7 @@ function Students() {
     },
   });
 
-  const [students, setStudents] = useLocalStorage<Student[]>("students", []);
+  const { value: students, setValue: setStudents } = useCloudStorage<Student[]>("students", []);
 
   const filteredStudents = students.filter(
     (student) =>

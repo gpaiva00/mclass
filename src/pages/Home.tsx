@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import { SearchBar } from "@/components";
 import {
@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import { lessonCategories as classCategories } from "@/constants/lessonCategories";
-import { formatTime, useLocalStorage } from "@/utils";
+import { formatTime } from "@/utils";
+import { useCloudStorage } from "@/utils/storage";
 
 import { Category, Lesson } from "./Lessons";
 import type { Class } from "./NewClass";
@@ -22,12 +23,13 @@ function Home() {
   const [searchDate, setSearchDate] = useState("");
 
   const navigate = useNavigate();
-  const [classes] = useLocalStorage<Class[]>("classes", []);
-  const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
-  const [, setCurrentClassData] = useLocalStorage<Class | null>(
+  const { value: classes, loading: classesLoading } = useCloudStorage<Class[]>("classes", []);
+  const { value: lessons, loading: lessonsLoading } = useCloudStorage<Lesson[]>("lessons", []);
+  const { setValue: setCurrentClassData } = useCloudStorage<Class | null>(
     "currentClass",
     null,
   );
+
 
   // Group class by category
   const classByCategory = classes.reduce(
@@ -92,6 +94,17 @@ function Home() {
       isEditing: true, // Flag para identificar modo de edição
     });
     navigate("/aula");
+  }
+
+  if (classesLoading || lessonsLoading) {
+    return (
+      <div className="container flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Carregando aulas...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

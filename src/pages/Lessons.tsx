@@ -1,4 +1,4 @@
-import { useLocalStorage } from "@/utils/storage";
+import { useCloudStorage } from "@/utils/storage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, X } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -8,34 +8,34 @@ import { z } from "zod";
 
 import { SearchBar } from "@/components";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 
 import { lessonCategories } from "@/constants/lessonCategories";
@@ -158,7 +158,18 @@ function Lessons() {
     },
   });
 
-  const [lessons, setLessons] = useLocalStorage<Lesson[]>("lessons", []);
+  const { value: lessons, setValue: setLessons, loading } = useCloudStorage<Lesson[]>("lessons", []);
+
+  if (loading) {
+    return (
+      <div className="container flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Carregando planos de aula...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Agrupamento de lições por categoria
   const lessonsByCategory = lessons.reduce(

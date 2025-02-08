@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import UserMenu from "./UserMenu";
-
 import { Menu } from "lucide-react";
+
+import UserMenu from "./UserMenu";
 
 function Navbar() {
   const navigate = useNavigate();

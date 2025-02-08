@@ -1,21 +1,20 @@
 import { nanoid } from "nanoid";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-
-import { useLocalStorage } from "@/utils/storage";
-
 import { Separator } from "@/components/ui/separator";
+
 import { lessonCategories } from "@/constants/lessonCategories";
+import { useCloudStorage } from "@/utils/storage";
 
 import type { CheckedItem } from "./Class";
 import type { Category, Lesson } from "./Lessons";
@@ -43,15 +42,26 @@ function NewClass() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [step, setStep] = useState(1);
 
-  const [students] = useLocalStorage<Student[]>("students", []);
-  const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
+  const {value: students, loading: studentsLoading} = useCloudStorage<Student[]>("students", []);
+  const {value: lessons, loading: lessonsLoading} = useCloudStorage<Lesson[]>("lessons", []);
 
-  const [, setCurrentClassData] = useLocalStorage<Class | null>(
+  const {setValue: setCurrentClassData} = useCloudStorage<Class | null>(
     "currentClass",
     null,
   );
 
   const navigate = useNavigate();
+
+  if (studentsLoading || lessonsLoading) {
+    return (
+      <div className="container flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Group lessons by category
   const lessonsByCategory = lessons.reduce(

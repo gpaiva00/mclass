@@ -1,6 +1,6 @@
-import { Clock, Pause, Play, Square } from "lucide-react";
+import { Clock, Pause, Pen, Play, Square } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import { SignatureModal } from "@/components";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { lessonCategories } from "@/constants/lessonCategories";
-import { formatTime, useLocalStorage } from "@/utils";
-
-import { Pen } from "lucide-react";
+import { formatTime } from "@/utils";
+import { useCloudStorage } from "@/utils/storage";
 
 import type { Lesson } from "./Lessons";
 import type { Class } from "./NewClass";
@@ -44,13 +43,13 @@ function Class() {
   const navigate = useNavigate();
   const timerRef = useRef<NodeJS.Timeout>();
 
-  const [currentClassData] = useLocalStorage<Class | null>(
+  const { value: currentClassData, loading: currentClassLoading } = useCloudStorage<Class | null>(
     "currentClass",
     null,
   );
-  const [, setClasses] = useLocalStorage<Class[]>("classes", []);
-  const [students] = useLocalStorage<Student[]>("students", []);
-  const [lessons] = useLocalStorage<Lesson[]>("lessons", []);
+  const { setValue: setClasses, loading: classesLoading } = useCloudStorage<Class[]>("classes", []);
+  const { value: students, loading: studentsLoading } = useCloudStorage<Student[]>("students", []);
+  const { value: lessons, loading: lessonsLoading } = useCloudStorage<Lesson[]>("lessons", []);
 
   const [signatures, setSignatures] = useState<Signature>({
     teacher: currentClassData?.teacherSignature || "",
@@ -195,6 +194,17 @@ function Class() {
         [signatureType]: signature,
       }));
     }
+  }
+
+  if (currentClassLoading || classesLoading || studentsLoading || lessonsLoading) {
+    return (
+      <div className="container flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Carregando aula...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
