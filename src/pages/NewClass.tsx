@@ -3,10 +3,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -151,7 +151,7 @@ function NewClass() {
             {students.map((student, index) => (
               <div key={index} className="space-y-4">
                 <div className="flex items-center justify-between w-full">
-                  <Label className="text-lg">{student.name}</Label>
+                  <Label className="text-lg text-primary">{student.name}</Label>
                   <Button
                     variant="outline"
                     size="sm"

@@ -8,34 +8,34 @@ import { z } from "zod";
 
 import { SearchBar } from "@/components";
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 import { lessonCategories } from "@/constants/lessonCategories";
@@ -78,7 +78,7 @@ function AddLessonItem({ onAdd }: AddLessonItemProps) {
           onChange={(e) => setDescription(e.target.value)}
           className="flex-grow"
         />
-        <Button onClick={handleAdd} variant="secondary">
+        <Button onClick={handleAdd} variant="secondary" type="button">
           Adicionar
         </Button>
       </div>
@@ -159,6 +159,31 @@ function Lessons() {
   });
 
   const { value: lessons, setValue: setLessons, loading } = useCloudStorage<Lesson[]>("lessons", []);
+  const [orderedCategories, setOrderedCategories] = useState(lessonCategories);
+  const [dragOverItem, setDragOverItem] = useState<number | null>(null);
+
+  function handleDragStart(e: React.DragEvent, index: number) {
+    e.dataTransfer.setData('text/plain', index.toString());
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    setDragOverItem(index);
+  }
+
+  function handleDragEnd(e: React.DragEvent) {
+    const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    const targetIndex = dragOverItem;
+
+    if (targetIndex === null || sourceIndex === targetIndex) return;
+
+    const items = Array.from(orderedCategories);
+    const [reorderedItem] = items.splice(sourceIndex, 1);
+    items.splice(targetIndex, 0, reorderedItem);
+
+    setOrderedCategories(items);
+    setDragOverItem(null);
+  }
 
   if (loading) {
     return (
@@ -215,6 +240,10 @@ function Lessons() {
     }))
     .filter(({ lessons }) => lessons.length > 0);
 
+  const visibleCategories = orderedCategories.filter(category =>
+    filteredLessonsByCategory.some(filtered => filtered.category.id === category.id)
+  );
+
   function toggleModal() {
     if (!isModalOpen) {
       setSelectedLesson(null);
@@ -270,37 +299,28 @@ function Lessons() {
     setIsModalOpen(true);
   }
 
-  function handleSubmit() {
-    const data = form.getValues();
-
-    if (!data.title) {
-      alert("O campo título é obrigatório.");
-      return;
-    }
-
-    if (!data.categoryId) {
-      alert("A categoria é obrigatória.");
-      return;
-    }
-
+  function handleSubmit(data: Lesson) {
     if (!items.length) {
       alert("Adicione ao menos um item ao plano de aulas.");
       return;
     }
 
-    data.items = items;
+    const lessonData = {
+      ...data,
+      items: items
+    };
 
     if (selectedLesson) {
       setLessons((_lessons) =>
         _lessons.map((lesson) =>
-          lesson.id === selectedLesson.id ? { ...data, id: lesson.id } : lesson,
+          lesson.id === selectedLesson.id ? { ...lessonData, id: lesson.id } : lesson,
         ),
       );
     } else {
       setLessons((_lessons) => [
         ..._lessons,
         {
-          ...data,
+          ...lessonData,
           id: nanoid(7),
         },
       ]);
@@ -333,45 +353,56 @@ function Lessons() {
         </p>
       )}
 
-      {filteredLessonsByCategory.map(({ categoryId, category, lessons }) => (
-        <div key={categoryId} className="space-y-4">
-          <h2 className="text-xl font-semibold">{category.name}</h2>
-          <Accordion type="single" collapsible className="mb-8">
-            {lessons.map(({ id, title, items }) => (
-              <AccordionItem key={id} value={id}>
-                <AccordionTrigger className="group">
-                  <div className="flex items-center justify-between w-full pr-4">
-                    <span>{title}</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <ul className="space-y-2 list-disc list-inside">
-                    {items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex items-center justify-between px-2 rounded-md"
+      <div className="space-y-4">
+        {visibleCategories.map((category, index) => (
+          <div
+            key={category.id}
+            draggable
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDragEnd={handleDragEnd}
+            className={`space-y-4 cursor-move transition-all ${dragOverItem === index ? 'border-t-2 border-primary bg-muted/50 rounded-lg p-2' : ''}`}
+          >
+            <h2 className="text-xl font-semibold">{category.name}</h2>
+            <Accordion type="single" collapsible className="mb-8">
+              {filteredLessonsByCategory
+                .find((filtered) => filtered.category.id === category.id)?.lessons
+                .map(({ id, title, items }) => (
+                  <AccordionItem key={id} value={id}>
+                    <AccordionTrigger className="group">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <span>{title}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4">
+                      <ul className="space-y-2 list-disc list-inside">
+                        {items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-center justify-between px-2 rounded-md"
+                          >
+                            - {item.description}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditLesson({ id, title, categoryId: category.id, items });
+                        }}
+                        className="w-full"
                       >
-                        - {item.description}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditLesson({ id, title, categoryId, items });
-                    }}
-                    className="w-full"
-                  >
-                    Editar Plano de Aula
-                  </Button>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      ))}
+                        Editar Plano de Aula
+                      </Button>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+            </Accordion>
+          </div>
+        ))}
+      </div>
 
       <Dialog modal open={isModalOpen} onOpenChange={toggleModal}>
         <DialogContent>
@@ -381,104 +412,107 @@ function Lessons() {
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex: Aulas 1 e 2"
-                        className="capitalize"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
+                        <Input
+                          placeholder="Ex: Aulas 1 e 2"
+                          className="capitalize"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {lessonCategories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <AddLessonItem onAdd={handleAddItem} />
-            </div>
-
-            <div className="my-6 space-y-2 overflow-y-auto max-h-40">
-              {items.map((item) => (
-                <div key={item.id}>
-                  {editingItemId === item.id ? (
-                    <EditLessonItem
-                      item={item}
-                      onSave={handleUpdateItem}
-                      onCancel={handleCancelEdit}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 rounded-md">
-                      <span>{item.description}</span>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditItem(item.id)}
-                          className="text-blue-500"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="text-red-500"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
-              ))}
-            </div>
+                />
 
-            <Button className="w-full" onClick={handleSubmit}>
-              {selectedLesson ? "Atualizar" : "Salvar"}
-            </Button>
-            {selectedLesson && (
-              <Button
-                variant="link"
-                className="w-full text-red-500"
-                onClick={() => handleRemoveLesson(selectedLesson.id)}
-              >
-                Apagar Plano de Aula
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {lessonCategories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <AddLessonItem onAdd={handleAddItem} />
+              </div>
+
+              <div className="my-6 space-y-2 overflow-y-auto max-h-40">
+                {items.map((item) => (
+                  <div key={item.id}>
+                    {editingItemId === item.id ? (
+                      <EditLessonItem
+                        item={item}
+                        onSave={handleUpdateItem}
+                        onCancel={handleCancelEdit}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 rounded-md">
+                        <span>{item.description}</span>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditItem(item.id)}
+                            className="text-blue-500"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <Button type="submit" className="w-full">
+                {selectedLesson ? "Atualizar" : "Salvar"}
               </Button>
-            )}
+              {selectedLesson && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full text-red-500"
+                  onClick={() => handleRemoveLesson(selectedLesson.id)}
+                >
+                  Apagar Plano de Aula
+                </Button>
+              )}
+            </form>
           </Form>
         </DialogContent>
       </Dialog>

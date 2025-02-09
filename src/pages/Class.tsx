@@ -227,29 +227,36 @@ function Class() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-3xl font-mono text-center">
-              {formatTime(timer.duration)}
+              {formatTime(isEditing ? currentClassData?.duration || 0 : timer.duration)}
             </div>
-            <div className="flex justify-center gap-2">
-              {!timer.isRunning ? (
-                <Button onClick={handleStartTimer} className="w-24">
-                  <Play className="h-4 w-4 mr-2" />
-                  Iniciar
+            {!isEditing && (
+              <div className="flex justify-center gap-2">
+                {!timer.isRunning ? (
+                  <Button onClick={handleStartTimer} className="w-24">
+                    <Play className="h-4 w-4 mr-2" />
+                    Iniciar
+                  </Button>
+                ) : (
+                  <Button onClick={handlePauseTimer} className="w-24">
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pausar
+                  </Button>
+                )}
+                <Button
+                  onClick={handleStopTimer}
+                  variant="outline"
+                  className="w-24"
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  Parar
                 </Button>
-              ) : (
-                <Button onClick={handlePauseTimer} className="w-24">
-                  <Pause className="h-4 w-4 mr-2" />
-                  Pausar
-                </Button>
-              )}
-              <Button
-                onClick={handleStopTimer}
-                variant="outline"
-                className="w-24"
-              >
-                <Square className="h-4 w-4 mr-2" />
-                Parar
-              </Button>
-            </div>
+              </div>
+            )}
+            {isEditing && (
+              <p className="text-sm text-muted-foreground text-center">
+                O timer não pode ser modificado durante a edição
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -343,9 +350,10 @@ function Class() {
                       variant="outline"
                       onClick={() => handleOpenSignature("teacher")}
                       className="w-full h-24 flex flex-col items-center justify-center gap-2"
+                      disabled={isEditing}
                     >
                       <Pen className="h-6 w-6" />
-                      Assinar
+                      {isEditing ? "Assinatura bloqueada" : "Assinar"}
                     </Button>
                   )}
                   {signatures.teacher && (
@@ -353,6 +361,7 @@ function Class() {
                       variant="outline"
                       onClick={() => handleOpenSignature("teacher")}
                       className="h-24"
+                      disabled={isEditing}
                     >
                       <Pen className="h-4 w-4" />
                     </Button>
@@ -376,9 +385,10 @@ function Class() {
                       variant="outline"
                       onClick={() => handleOpenSignature("student")}
                       className="w-full h-24 flex flex-col items-center justify-center gap-2"
+                      disabled={isEditing}
                     >
                       <Pen className="h-6 w-6" />
-                      Assinar
+                      {isEditing ? "Assinatura bloqueada" : "Assinar"}
                     </Button>
                   )}
                   {signatures.student && (
@@ -386,6 +396,7 @@ function Class() {
                       variant="outline"
                       onClick={() => handleOpenSignature("student")}
                       className="h-24"
+                      disabled={isEditing}
                     >
                       <Pen className="h-4 w-4" />
                     </Button>

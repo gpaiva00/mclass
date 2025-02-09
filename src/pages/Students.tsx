@@ -8,18 +8,18 @@ import { z } from "zod";
 import { SearchBar } from "@/components";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -166,7 +166,7 @@ function Students() {
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col space-y-1">
                 <div className="flex items-center gap-2">
-                  <Label className="text-lg">{name}</Label>
+                  <Label className="text-lg text-primary">{name}</Label>
                   {!!studentNumber?.length && (
                     <span className="text-sm text-muted-foreground">
                       #{studentNumber}
